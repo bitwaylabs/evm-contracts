@@ -1,0 +1,21 @@
+{
+    "name": "bitway-evm-contracts",
+    "version": "1.0.0",
+    "description": "Bitway EVM contracts",
+    "scripts": {
+        "compile": "npx hardhat compile",
+        "test": "npx hardhat test --network hardhat",
+        "deploy-testnet": "npx hardhat run scripts/deploy.js --network testnet",
+        "deploy-mainnet": "npx hardhat run scripts/deploy.js --network mainnet"
+    },
+    "author": "Bitway Labs",
+    "license": "MIT",
+    "devDependencies": {
+        "@nomicfoundation/hardhat-ethers": "^3.0.5",
+        "hardhat": "^2.19.2"
+    },
+    "dependencies": {
+        "@openzeppelin/contracts": "5.4.0",
+        "ethers": "6.15.0"
+    }
+}
