@@ -6,14 +6,14 @@ async function deploy() {
     // deploy BitwayToken contract
 
     const totalSupply = "1000000000000000"; // 1B
-    const treasury = ""; // treasury address
+    const owner = ""; // owner address
 
     console.log("Deploying with the account:", deployer.address);
     console.log("Account balance:", ethers.formatEther(await deployer.provider.getBalance(deployer.address)));
 
     const contractFactory = await ethers.getContractFactory("BitwayToken");
 
-    const contract = await contractFactory.deploy(totalSupply, treasury);
+    const contract = await contractFactory.deploy(totalSupply, owner);
     await contract.waitForDeployment();
 
     console.log("contract address:", contract.target);
