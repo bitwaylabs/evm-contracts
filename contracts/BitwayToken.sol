@@ -11,8 +11,6 @@ import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20P
  * @title Bitway token contract.
  */
 contract BitwayToken is Ownable, Pausable, ERC20Permit {
-    uint8 private constant DECIMALS = 6; // decimals
-
     /**
      * @notice Constructor.
      * @param totalSupply Total supply
@@ -66,12 +64,5 @@ contract BitwayToken is Ownable, Pausable, ERC20Permit {
      */
     function unpause() public onlyOwner {
         _unpause();
-    }
-
-    /**
-     * @notice Override {ERC20-decimals}.
-     */
-    function decimals() public view virtual override returns (uint8) {
-        return DECIMALS;
     }
 }
