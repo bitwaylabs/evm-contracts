@@ -11,37 +11,77 @@ import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20P
  * @title Bitway token contract.
  */
 contract BitwayToken is Ownable, Pausable, ERC20Permit {
+    // Timestamp after which transfers are allowed for non-whitelisted users
+    uint256 public transferAllowedTimestamp;
+    uint256 internal ETA;
+
+    // Whitelist
+    mapping(address => bool) public whitelist;
+
+    // Events
+    event NewTransferAllowedTimestamp(uint256 newTimestamp);
+    event WhitelistAdded(address indexed user);
+    event WhitelistRemoved(address indexed user);
+
     /**
      * @notice Constructor.
      * @param totalSupply Total supply
      * @param owner Owner address
+     * @param transferAllowedTimestamp_ Timestamp after which transfers are allowed
      */
     constructor(
         uint256 totalSupply,
-        address owner
+        address owner,
+        uint256 transferAllowedTimestamp_
     ) Ownable(owner) ERC20("Bitway Token", "BTW") ERC20Permit("Bitway Token") {
+        require(
+            transferAllowedTimestamp_ >= block.timestamp,
+            "Incorrect timestamp"
+        );
+        transferAllowedTimestamp = transferAllowedTimestamp_;
+
+        whitelist[owner] = true;
+
         _mint(owner, totalSupply);
     }
 
     /**
-     * @notice Override {ERC20-transfer}.
+     * @notice Set the new timestamp after which transfers will be allowed for non-whitelisted addresses
+     * @param newTimestamp The new timestamp
      */
-    function transfer(
-        address to,
-        uint256 value
-    ) public virtual override whenNotPaused returns (bool) {
-        return super.transfer(to, value);
+    function setTransferAllowedTimestamp(
+        uint256 newTimestamp
+    ) external onlyOwner {
+        if (transferAllowedTimestamp > block.timestamp && ETA == 0) {
+            transferAllowedTimestamp = newTimestamp;
+        } else {
+            if (ETA == 0) {
+                ETA = transferAllowedTimestamp + 1 days;
+            }
+
+            require(newTimestamp <= ETA, "The timestamp exceeds the ETA");
+            transferAllowedTimestamp = newTimestamp;
+        }
+
+        emit NewTransferAllowedTimestamp(newTimestamp);
     }
 
     /**
-     * @notice Override {ERC20-transferFrom}.
+     * @notice Add the specified address to whitelist
+     * @param user The destination address to be added to whitelist
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) public virtual override whenNotPaused returns (bool) {
-        return super.transferFrom(from, to, value);
+    function addToWhitelist(address user) external onlyOwner {
+        whitelist[user] = true;
+        emit WhitelistAdded(user);
+    }
+
+    /**
+     * @notice Remove the specified address from whitelist
+     * @param user The destination address to be removed from whitelist
+     */
+    function removeFromWhitelist(address user) external onlyOwner {
+        whitelist[user] = false;
+        emit WhitelistRemoved(user);
     }
 
     /**
@@ -64,5 +104,23 @@ contract BitwayToken is Ownable, Pausable, ERC20Permit {
      */
     function unpause() public onlyOwner {
         _unpause();
+    }
+
+    /**
+     * @notice Override {ERC20._update} to enforce time lock and whitelist
+     */
+    function _update(
+        address from,
+        address to,
+        uint256 value
+    ) internal override whenNotPaused {
+        require(
+            block.timestamp >= transferAllowedTimestamp ||
+                whitelist[from] ||
+                whitelist[to],
+            "Not allowed"
+        );
+
+        super._update(from, to, value);
     }
 }
