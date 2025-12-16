@@ -1,6 +1,9 @@
+
+require("@nomicfoundation/hardhat-chai-matchers");
 require("@nomicfoundation/hardhat-ethers");
 const { Wallet } = require("ethers");
 const { vars } = require("hardhat/config");
+
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
