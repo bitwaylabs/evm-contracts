@@ -2,10 +2,10 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("BitwayToken — IDO, TGE, TimeLock, ETA Logic", function () {
-    let owner, user, partner, other, token, lock;
+    let owner, minter, user, partner, other, token, lock;
 
     beforeEach(async function () {
-        [owner, user, partner, other] = await ethers.getSigners();
+        [owner, minter, user, partner, other] = await ethers.getSigners();
 
         const now = (await ethers.provider.getBlock()).timestamp;
 
@@ -18,16 +18,20 @@ describe("BitwayToken — IDO, TGE, TimeLock, ETA Logic", function () {
         );
         await token.waitForDeployment();
 
+
+
         const BitwayTokenLock = await ethers.getContractFactory("BitwayTokenLock");
         lock = await BitwayTokenLock.deploy(await token.getAddress(), owner.address, 0);
         await lock.waitForDeployment();
 
         await token.addToWhitelist(await lock.getAddress());
         await token.transfer(await lock.getAddress(), ethers.parseEther("50000"));
+
     });
 
     // -------------------------------------------------------
     it("1. Whitelist add/remove", async function () {
+        await token.addToWhitelist(owner.address);
         await token.addToWhitelist(partner.address);
         expect(await token.whitelist(partner.address)).to.equal(true);
 
@@ -37,7 +41,8 @@ describe("BitwayToken — IDO, TGE, TimeLock, ETA Logic", function () {
 
     // -------------------------------------------------------
     it("2. User cannot transfer before TGE", async function () {
-        await lock.distribute(user.address, ethers.parseEther("1000"));
+        await lock.setMinter(minter.address)
+        await lock.connect(minter).mint(user.address, ethers.parseEther("100"));
 
         await expect(
             token.connect(user).transfer(other.address, ethers.parseEther("1"))
@@ -47,7 +52,8 @@ describe("BitwayToken — IDO, TGE, TimeLock, ETA Logic", function () {
     // -------------------------------------------------------
     it("3. Whitelisted address can transfer before TGE", async function () {
         await token.addToWhitelist(partner.address);
-        await lock.distribute(partner.address, ethers.parseEther("1000"));
+        await lock.setMinter(minter.address)
+        await lock.connect(minter).mint(partner.address, ethers.parseEther("1000"));
 
         await expect(
             token.connect(partner).transfer(user.address, ethers.parseEther("1"))
@@ -56,7 +62,8 @@ describe("BitwayToken — IDO, TGE, TimeLock, ETA Logic", function () {
 
     // -------------------------------------------------------
     it("4. After TGE, anyone can transfer", async function () {
-        await lock.distribute(user.address, ethers.parseEther("1000"));
+        await lock.setMinter(minter.address)
+        await lock.connect(minter).mint(user.address, ethers.parseEther("1000"));
 
         const unlockTs = await token.transferAllowedTimestamp();
         const now = (await ethers.provider.getBlock()).timestamp;

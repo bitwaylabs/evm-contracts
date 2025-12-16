@@ -109,17 +109,14 @@ contract BitwayToken is Ownable, Pausable, ERC20Permit {
     /**
      * @notice Override {ERC20._update} to enforce time lock and whitelist
      */
-    function _update(
-        address from,
-        address to,
-        uint256 value
-    ) internal override whenNotPaused {
-        require(
-            block.timestamp >= transferAllowedTimestamp ||
-                whitelist[from] ||
-                whitelist[to],
-            "Not allowed"
-        );
+    function _update(address from, address to, uint256 value) internal override {
+        if (block.timestamp < transferAllowedTimestamp) {
+
+            // FIX: allow mint (from = address(0)) and burn (to = address(0))
+            if (from != address(0)) {
+                require(whitelist[from], "Not allowed");
+            }
+        }
 
         super._update(from, to, value);
     }
