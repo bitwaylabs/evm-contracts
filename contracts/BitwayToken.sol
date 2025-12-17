@@ -71,6 +71,9 @@ contract BitwayToken is Ownable, Pausable, ERC20Permit {
      * @param user The destination address to be added to whitelist
      */
     function addToWhitelist(address user) external onlyOwner {
+        require(user != address(0), "Zero address");
+        require(!whitelist[user], "Already whitelisted");
+
         whitelist[user] = true;
         emit WhitelistAdded(user);
     }
@@ -80,6 +83,9 @@ contract BitwayToken is Ownable, Pausable, ERC20Permit {
      * @param user The destination address to be removed from whitelist
      */
     function removeFromWhitelist(address user) external onlyOwner {
+        require(user != address(0), "Zero address");
+        require(whitelist[user], "Not whitelisted");
+
         whitelist[user] = false;
         emit WhitelistRemoved(user);
     }
@@ -93,31 +99,17 @@ contract BitwayToken is Ownable, Pausable, ERC20Permit {
     }
 
     /**
-     * @notice Pause. Transfer will be disabled when paused.
-     */
-    function pause() public onlyOwner {
-        _pause();
-    }
-
-    /**
-     * @notice Unpause. Transfer will be enabled when unpaused.
-     */
-    function unpause() public onlyOwner {
-        _unpause();
-    }
-
-    /**
      * @notice Override {ERC20._update} to enforce time lock and whitelist
      */
     function _update(address from, address to, uint256 value) internal override {
         if (block.timestamp < transferAllowedTimestamp) {
 
-            // FIX: allow mint (from = address(0)) and burn (to = address(0))
+            // Allow mint: from = address(0) skips whitelist check
+            // burn is still restricted - requires whitelist
             if (from != address(0)) {
                 require(whitelist[from], "Not allowed");
             }
         }
-
         super._update(from, to, value);
     }
 }
