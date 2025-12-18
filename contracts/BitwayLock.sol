@@ -73,7 +73,7 @@ contract BitwayTokenLock is Ownable {
     function mint(address to, uint256 amount) external onlyMinter {
         require(to != address(0), "Recipient zero address");
         require(amount > 0, "Amount > 0");
-        require(balance() >= amount, "Insufficient balance");
+        require(balanceOf() >= amount, "Insufficient balance");
 
         BTW.safeTransfer(to, amount);
         emit Minted(to, amount);
@@ -90,7 +90,7 @@ contract BitwayTokenLock is Ownable {
         require(block.timestamp >= releaseTime, "Time lock active");
         require(to != address(0), "Recipient zero address");
         require(amount > 0, "Amount > 0");
-        require(balance() >= amount, "Not enough balance");
+        require(balanceOf() >= amount, "Not enough balance");
 
         BTW.safeTransfer(to, amount);
         emit Rescued(to, amount);
@@ -112,11 +112,7 @@ contract BitwayTokenLock is Ownable {
         return BTW.decimals();
     }
 
-    function balance() public view returns (uint256) {
-        return BTW.balanceOf(address(this));
-    }
-
     function balanceOf() public view returns (uint256) {
         return BTW.balanceOf(address(this));
-}
+    }
 }
