@@ -115,4 +115,8 @@ contract BitwayTokenLock is Ownable {
     function balance() public view returns (uint256) {
         return BTW.balanceOf(address(this));
     }
+
+    function balanceOf() public view returns (uint256) {
+        return BTW.balanceOf(address(this));
+}
 }
