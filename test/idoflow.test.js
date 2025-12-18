@@ -20,7 +20,6 @@ describe("IDO Flow for BitwayToken + BitwayTokenLock", function () {
             unlockTime
         );
         await token.waitForDeployment();
-        await token.addToWhitelist(owner.address);
 
         // Deploy lock contract
         const BitwayTokenLock = await ethers.getContractFactory("BitwayTokenLock");

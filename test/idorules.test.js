@@ -31,7 +31,6 @@ describe("BitwayToken — IDO, TGE, TimeLock, ETA Logic", function () {
 
     // -------------------------------------------------------
     it("1. Whitelist add/remove", async function () {
-        await token.addToWhitelist(owner.address);
         await token.addToWhitelist(partner.address);
         expect(await token.whitelist(partner.address)).to.equal(true);
 
